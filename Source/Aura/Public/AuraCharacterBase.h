@@ -14,6 +14,9 @@ class AURA_API AAuraCharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AAuraCharacterBase();
+UFUNCTION(BlueprintCallable)
+	virtual void Die();
+
 
 protected:
 	// Called when the game starts or when spawned
