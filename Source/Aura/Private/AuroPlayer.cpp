@@ -2,7 +2,8 @@
 
 
 #include "AuroPlayer.h"
-
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AAuroPlayer::AAuroPlayer()
@@ -13,6 +14,10 @@ AAuroPlayer::AAuroPlayer()
 	GetCharacterMovement()->RotationRate = FRotator(0.f,400.f,0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	
+	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 	
 
 //Rotacion de eje cancelada
