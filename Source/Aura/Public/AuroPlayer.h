@@ -15,5 +15,8 @@ class AURA_API AAuroPlayer : public AAuraCharacterBase
 	GENERATED_BODY()
 public:
 	AAuroPlayer();	
-	
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+private: 
+	void InitAbilityActorInfo();
 };
