@@ -7,6 +7,7 @@
 #include "AuraHUD.generated.h"
 
 class UAbilitySystemComponent;
+class UAttributeSet;
 struct FWidgetControllerParams;
 class UOverlayWidgetController;
 class UAuraUserWidget;
