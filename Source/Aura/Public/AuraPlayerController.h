@@ -39,6 +39,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
 	
+	// En la sección protected o private
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> DashAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> AreaAttackAction;
+	
+	void AreaAttack();
+	
+	void Dash();
+	
 	void Move(const FInputActionValue& InputActionValue);
 	
 	void CursorTrace();

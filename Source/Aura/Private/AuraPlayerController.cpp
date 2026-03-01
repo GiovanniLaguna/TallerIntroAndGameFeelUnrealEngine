@@ -1,9 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "AuraPlayerController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayTagContainer.h"
-#include "AuraPlayerController.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Interaction/EnemyInterface.h"
@@ -53,6 +55,12 @@ void AAuraPlayerController::SetupInputComponent()
 	
 	// ¡Aquí conectamos tu nuevo AttackAction!
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::Attack);
+
+	// Registramos la acción del Dash
+	EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AAuraPlayerController::Dash);
+	
+	// Bindeamos la nueva acción
+	EnhancedInputComponent->BindAction(AreaAttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::AreaAttack);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -143,6 +151,36 @@ void AAuraPlayerController::Attack()
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Attack")));
 			
+			ASC->TryActivateAbilitiesByTag(TagContainer);
+		}
+	}
+}
+
+void AAuraPlayerController::Dash()
+{
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		// Obtenemos el sistema de habilidades del personaje usando Globals
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
+		{
+			// Le decimos: "Activa la habilidad que tenga la etiqueta Input.Dash"
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Dash")));
+          
+			ASC->TryActivateAbilitiesByTag(TagContainer);
+		}
+	}
+}
+
+void AAuraPlayerController::AreaAttack()
+{
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
+		{
+			// Usamos la etiqueta para activar la habilidad
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.AreaAttack")));
 			ASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
