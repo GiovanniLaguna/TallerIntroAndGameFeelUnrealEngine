@@ -19,4 +19,8 @@ public:
 	virtual void OnRep_PlayerState() override;
 private: 
 	void InitAbilityActorInfo();
+	
+protected:
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 };

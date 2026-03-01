@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "GameplayTagContainer.h"
 #include "AuraPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -48,6 +50,9 @@ void AAuraPlayerController::SetupInputComponent()
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 	
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+	
+	// ¡Aquí conectamos tu nuevo AttackAction!
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::Attack);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -123,6 +128,22 @@ void AAuraPlayerController::CursorTrace()
 			{
 				
 			}
+		}
+	}
+}
+
+void AAuraPlayerController::Attack()
+{
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		// Obtenemos el sistema de habilidades del personaje
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
+		{
+			// Le decimos: "Activa la habilidad que tenga la etiqueta Input.Attack"
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Attack")));
+			
+			ASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
 }

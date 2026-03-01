@@ -28,6 +28,10 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	// El Gameplay Effect que aplicará este ítem (Ej. GE_Heal)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aura|Effects")
+	TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 
 private:
 	UPROPERTY(VisibleAnywhere)

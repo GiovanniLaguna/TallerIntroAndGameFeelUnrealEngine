@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
@@ -22,6 +23,8 @@ public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
 	
+	
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -39,6 +42,8 @@ private:
 	void Move(const FInputActionValue& InputActionValue);
 	
 	void CursorTrace();
+	
+	void Attack();
 	
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;

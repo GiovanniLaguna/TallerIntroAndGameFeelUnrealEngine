@@ -36,4 +36,7 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+	
+	UPROPERTY(EditAnywhere, Category = "Aura|Loot")
+	TSubclassOf<class AAuraEffectActor> LootItemClass;
 };

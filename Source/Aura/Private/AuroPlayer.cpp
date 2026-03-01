@@ -55,4 +55,15 @@ void AAuroPlayer::InitAbilityActorInfo()
  			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
  		}
  	}
+	
+	// Otorgar habilidades iniciales (Solo en el servidor para evitar desincronización)
+	if (HasAuthority() && AbilitySystemComponent)
+	{
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : StartupAbilities)
+		{
+			// Le damos la habilidad nivel 1
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		}
+	}
 }

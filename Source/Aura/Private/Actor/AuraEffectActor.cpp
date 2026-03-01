@@ -22,17 +22,25 @@ AAuraEffectActor::AAuraEffectActor()
 
 }
 
-void AAuraEffectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AAuraEffectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//TODO: Change this to apply a Gameplay Effect. For now, using const_cast as a hack!
+	// Buscamos si el actor que nos tocó tiene un Ability System
 	if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(OtherActor))
 	{
-		const UAuraAttributeSet* AuraAttributeSet = Cast<UAuraAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(UAuraAttributeSet::StaticClass()));
+		UAbilitySystemComponent* TargetASC = ASCInterface->GetAbilitySystemComponent();
 		
-		UAuraAttributeSet* MutableAuraAttributeSet = const_cast<UAuraAttributeSet*>(AuraAttributeSet);
-		MutableAuraAttributeSet->SetHealth(AuraAttributeSet->GetHealth() + 25.f);
-		Destroy();
+		// Si configuramos un Gameplay Effect en el editor, lo aplicamos
+		if (GameplayEffectClass && TargetASC)
+		{
+			FGameplayEffectContextHandle EffectContext = TargetASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+			
+			FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, 1.0f, EffectContext);
+			TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+			
+			// Destruimos el ítem tras curar
+			Destroy();
+		}
 	}
 }
 
