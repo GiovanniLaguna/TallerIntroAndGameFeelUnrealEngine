@@ -9,11 +9,20 @@ void UAuraAreaAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	// Le decimos a GAS: "Aplica el cooldown del ataque en área AHORA"
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+	
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	TArray<AActor*> Ignored;
 	Ignored.Add(Avatar);
 
 	TArray<FHitResult> HitResults;
+	
+	
 	
 	// Realizamos un barrido circular (SphereTrace) para encontrar enemigos
 	UKismetSystemLibrary::SphereTraceMulti(

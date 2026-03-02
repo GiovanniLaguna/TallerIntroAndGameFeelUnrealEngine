@@ -1,5 +1,5 @@
-#include "AbilitySystemComponent.h"
 #include "AbilitySystem/AuraMeleeAttack.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -86,15 +86,43 @@ void UAuraMeleeAttack::OnWeaponHit(FGameplayEventData Payload)
 		HitResults,
 		true
 	);
+	
+	// 1. Creamos una lista temporal para recordar a quién ya golpeamos
+	TArray<AActor*> UniqueHitActors;
 
 	for (const FHitResult& Hit : HitResults)
 	{
 		AActor* HitActor = Hit.GetActor();
 		
-		// Verificamos si es un enemigo válido
-		if (HitActor && HitActor->Implements<UEnemyInterface>())
+		// 2. Verificamos que no sea él mismo, Y que no esté en nuestra lista de ya golpeados
+		if (HitActor && HitActor != AvatarActor && !UniqueHitActors.Contains(HitActor))
 		{
-			// Obtenemos el Ability System Component del enemigo
+			// 3. Lo agregamos a la lista para no volver a hacerle daño en este mismo frame
+			UniqueHitActors.Add(HitActor);
+
+			UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitActor);
+			
+			if (TargetASC && DamageEffectClass)
+			{
+				FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponentFromActorInfo()->MakeEffectContext();
+				ContextHandle.AddSourceObject(this);
+				
+				FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponentFromActorInfo()->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), ContextHandle);
+				
+				GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+			}
+		}
+	}
+
+	for (const FHitResult& Hit : HitResults)
+	{
+		AActor* HitActor = Hit.GetActor();
+		
+		// Quitamos la restricción de UEnemyInterface. 
+		// Ahora verifica si golpeó algo y que no sea él mismo (aunque el Trace ya lo ignora, es buena práctica)
+		if (HitActor && HitActor != AvatarActor)
+		{
+			// Obtenemos el Ability System Component de quien recibió el golpe (sea Jugador o Enemigo)
 			UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitActor);
 			
 			// Si tiene ASC y tenemos un efecto de daño configurado, lo aplicamos

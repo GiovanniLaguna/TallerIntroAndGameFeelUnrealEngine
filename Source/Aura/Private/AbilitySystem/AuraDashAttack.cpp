@@ -13,6 +13,15 @@ void UAuraDashAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	// --- ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA! ---
+	// Esto le dice a GAS: "Aplica el Cooldown y el Costo de maná/energía ahora mismo"
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		// Si falla el commit (ej. si ya estaba en cooldown), cancelamos la habilidad
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+	
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character) return;
 

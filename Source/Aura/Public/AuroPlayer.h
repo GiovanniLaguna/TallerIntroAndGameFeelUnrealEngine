@@ -17,10 +17,18 @@ public:
 	AAuroPlayer();	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+	virtual void Die() override;
+	
+	// Evento que llamará al Widget de Game Over desde el Blueprint
+	UFUNCTION(BlueprintImplementableEvent, Category = "Aura|UI")
+	void ShowGameOverScreen();
 private: 
 	void InitAbilityActorInfo();
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
+	
+	// Esta función escuchará cada vez que la vida cambie
+	void OnHealthChanged(const struct FOnAttributeChangeData& Data);
 };

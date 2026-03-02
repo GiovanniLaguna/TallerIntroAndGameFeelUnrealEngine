@@ -4,6 +4,7 @@
 #include "AuraCharacterBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Actor/AuraEffectActor.h"
+#include "Game/AuraGameModeBase.h"
 
 // Sets default values
 AAuraCharacterBase::AAuraCharacterBase()
@@ -24,18 +25,25 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 
 void AAuraCharacterBase::Die()
 {
-	// 1. Soltar el ítem (Loot) - Esto ya lo teníamos
+	// 1. Soltar el ítem (Loot) con Probabilidad
 	if (LootItemClass)
 	{
-		GetWorld()->SpawnActor<AAuraEffectActor>(LootItemClass, GetActorLocation(), GetActorRotation());
+		// Tiramos un dado del 1 al 100. Solo suelta el ítem si cae dentro del porcentaje (Ej. 20%)
+		if (FMath::RandRange(1, 100) <= LootDropChance) 
+		{
+			GetWorld()->SpawnActor<AAuraEffectActor>(LootItemClass, GetActorLocation(), GetActorRotation());
+		}
 	}
 
-	// 2. Desactivar el controlador (para que deje de perseguir al jugador)
-	if (AController* AIController = GetController())
+	// 2. Desactivar el controlador (SOLO si es un enemigo)
+	if (AController* BaseController = GetController())
 	{
-		AIController->UnPossess();
+		// Preguntamos si este controlador NO es de un jugador
+		if (!BaseController->IsPlayerController())
+		{
+			BaseController->UnPossess();
+		}
 	}
-
 	// 3. Configurar Ragdoll en la malla (Mesh)
 	GetMesh()->SetAllBodiesSimulatePhysics(true);
 	GetMesh()->SetSimulatePhysics(true);
@@ -48,6 +56,11 @@ void AAuraCharacterBase::Die()
 
 	// 5. Opcional: Programar la destrucción después de unos segundos para no saturar la memoria
 	SetLifeSpan(5.f); 
+	// Le avisamos al GameMode que revise si ya ganamos
+	if (AAuraGameModeBase* GameMode = Cast<AAuraGameModeBase>(GetWorld()->GetAuthGameMode()))
+	{
+		GameMode->CheckWinCondition();
+	}
 }
 
 // Called when the game starts or when spawned

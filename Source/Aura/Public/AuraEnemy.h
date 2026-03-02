@@ -20,9 +20,22 @@ AAuraEnemy();
 /** Enemy Interface*/
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+	// Función que llamará la Inteligencia Artificial
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void FireRangedAttack();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	float AttackRadius = 150.f; // Ahora sí aparecerá en el Blueprint del Hechicero y el Esbirro
+	
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void FireMeleeAttack();
 
 protected:
 
 	virtual void BeginPlay() override;
+	// Arreglo para darle habilidades iniciales al enemigo desde el Blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
+	
+	
 };

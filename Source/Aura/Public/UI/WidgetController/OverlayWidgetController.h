@@ -24,4 +24,6 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
 	FOnMaxHealtChangedSignature OnMaxHealtChanged;
+	
+	virtual void BindCallbacksToDependencies() override;
 };

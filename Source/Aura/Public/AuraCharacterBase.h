@@ -39,4 +39,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Aura|Loot")
 	TSubclassOf<class AAuraEffectActor> LootItemClass;
+	
+	UPROPERTY(EditAnywhere, Category = "Aura|Loot", meta = (ClampMin = "0.0", ClampMax = "100.0"))
+	float LootDropChance = 20.f; // 20% de probabilidad por defecto
 };
