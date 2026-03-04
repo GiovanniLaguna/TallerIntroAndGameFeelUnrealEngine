@@ -204,6 +204,14 @@ Copyright © Quetz-Lab 2026. Todos los derechos reservados.
 
 Consulta la sección de Issues en el repositorio para ver problemas conocidos y su estado.
 
+##Controles Básicos
+
+- Movimiento con WASD
+- Click izquierdo para atacar
+- Shift Izquierdo para Dash
+- Q para Ataque en Área
+- P para pausa
+
 ## Recursos Adicionales
 
 - [Documentación de Unreal Engine 5.6](https://docs.unrealengine.com/)
