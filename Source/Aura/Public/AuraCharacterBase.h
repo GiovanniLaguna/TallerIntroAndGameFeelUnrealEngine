@@ -16,16 +16,17 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AAuraCharacterBase();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const {return AttributeSet;}
-UFUNCTION(BlueprintCallable)
+	
+	UFUNCTION(BlueprintCallable)
 	virtual void Die();
 
+	// Función pública para activar el efecto de daño desde fuera (ej. desde el AttributeSet)
+	void PlayDamageEffect();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -40,6 +41,21 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Aura|Loot")
 	TSubclassOf<class AAuraEffectActor> LootItemClass;
 	
-	UPROPERTY(EditAnywhere, Category = "Aura|Loot", meta = (ClampMin = "0.0", ClampMax = "100.0"))
-	float LootDropChance = 20.f; // 20% de probabilidad por defecto
+	UPROPERTY(EditAnywhere, Category = "Aura|Loot")
+	float LootDropChance = 20.f;
+
+	/** Efectos Visuales de Daño **/
+
+	// Instancia dinámica que crearemos en tiempo de ejecución
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
+
+	// Nombre del parámetro en el Master Material
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName DamageParameterName = FName("IsDamaged");
+
+	// Función para apagar el rojo
+	void ResetDamageEffect();
+
+	FTimerHandle DamageTimerHandle;
 };
