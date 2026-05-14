@@ -20,7 +20,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	
 	CursorTrace();
-	
+    RotatePawnToCursor(); // Rotación constante hacia el mouse
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -33,8 +33,6 @@ void AAuraPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(AuraContext, 0);	
 	}
-	
-	
 	
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
@@ -52,32 +50,52 @@ void AAuraPlayerController::SetupInputComponent()
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 	
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
-	
-	// ¡Aquí conectamos tu nuevo AttackAction!
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::Attack);
-
-	// Registramos la acción del Dash
 	EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AAuraPlayerController::Dash);
-	
-	// Bindeamos la nueva acción
 	EnhancedInputComponent->BindAction(AreaAttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::AreaAttack);
+}
+
+void AAuraPlayerController::RotatePawnToCursor()
+{
+    APawn* ControlledPawn = GetPawn();
+    if (!ControlledPawn) return;
+
+    FHitResult Hit;
+    // Trazamos desde el mouse al mundo
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        FVector TargetLocation = Hit.ImpactPoint;
+        FVector PawnLocation = ControlledPawn->GetActorLocation();
+        
+        FVector Direction = (TargetLocation - PawnLocation);
+        Direction.Z = 0.f; // Mantener rotación solo en el eje Yaw
+
+        if (!Direction.IsNearlyZero())
+        {
+            FRotator NewRotation = Direction.Rotation();
+            ControlledPawn->SetActorRotation(NewRotation);
+        }
+    }
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
-	const FRotator Rotation = GetControlRotation();
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn) return;
+
+    // Movimiento Hotline Miami: W siempre es "hacia donde mira el personaje"
+	const FRotator Rotation = ControlledPawn->GetActorRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 	
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	
-	if (APawn* ControlledPawn = GetPawn<APawn>())
-	{
-		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-	}
+	ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+	ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 }
+
+// ... Resto de funciones (CursorTrace, Attack, Dash, AreaAttack) se mantienen igual que en tu archivo original ...
 
 void AAuraPlayerController::CursorTrace()
 {
@@ -88,54 +106,17 @@ void AAuraPlayerController::CursorTrace()
 	LastActor = ThisActor;
 	ThisActor = CursorHit.GetActor();
 	
-	/**
-	 * Line Trace from cursor. There are several scenarios:
-	 * A. LastActor is null && ThisActor is null
-	 *		-Do Nothing
-	 * B. LastActor is null && ThisActor is valid
-	 *		-Highlight ThisActor
-	 *	C. LastActor is valid && ThisActor is null
-	 *		-UnHighlight LastActor
-	 *	D. Both actors are valid, but LastActor != ThisActor
-	 *		-UnHighlight LastActor, and Highlight ThisActor
-	 *	E. Both actors are valid, and are the same acotr
-	 *		-Do Nothing
-	 */
-	
 	if (LastActor == nullptr)
 	{
-		if (ThisActor != nullptr)
-		{
-			//Case B
-			
-			ThisActor->HighlightActor();
-		}
-		else
-		{
-			{
-				//Case A - Both are null, do nothing
-			}
-		}
+		if (ThisActor != nullptr) ThisActor->HighlightActor();
 	}
-	else //LastActor is Valid
+	else 
 	{
-		if (ThisActor == nullptr)
+		if (ThisActor == nullptr) LastActor->UnHighlightActor();
+		else if (LastActor != ThisActor)
 		{
-			//Case C
 			LastActor->UnHighlightActor();
-		}
-		else //both actors are valid
-		{
-			if (LastActor != ThisActor)
-			{
-				//Case D
-				LastActor->UnHighlightActor();
-				ThisActor->HighlightActor();
-			}
-			else //Case E - Do nothing
-			{
-				
-			}
+			ThisActor->HighlightActor();
 		}
 	}
 }
@@ -144,13 +125,10 @@ void AAuraPlayerController::Attack()
 {
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
-		// Obtenemos el sistema de habilidades del personaje
 		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
 		{
-			// Le decimos: "Activa la habilidad que tenga la etiqueta Input.Attack"
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Attack")));
-			
 			ASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
@@ -160,13 +138,10 @@ void AAuraPlayerController::Dash()
 {
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
-		// Obtenemos el sistema de habilidades del personaje usando Globals
 		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
 		{
-			// Le decimos: "Activa la habilidad que tenga la etiqueta Input.Dash"
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Dash")));
-          
 			ASC->TryActivateAbilitiesByTag(TagContainer);
 		}
 	}
@@ -178,7 +153,6 @@ void AAuraPlayerController::AreaAttack()
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(ControlledPawn))
 		{
-			// Usamos la etiqueta para activar la habilidad
 			FGameplayTagContainer TagContainer;
 			TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.AreaAttack")));
 			ASC->TryActivateAbilitiesByTag(TagContainer);

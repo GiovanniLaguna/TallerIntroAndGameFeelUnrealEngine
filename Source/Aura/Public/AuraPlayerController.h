@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
@@ -11,9 +10,7 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class IEnemyInterface;
-/**
- * 
- */
+
 UCLASS()
 class AURA_API AAuraPlayerController : public APlayerController
 {
@@ -22,8 +19,6 @@ class AURA_API AAuraPlayerController : public APlayerController
 public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
-	
-	
 	
 protected:
 	virtual void BeginPlay() override;
@@ -39,7 +34,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
 	
-	// En la sección protected o private
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> DashAction;
 
@@ -47,18 +41,14 @@ private:
 	TObjectPtr<class UInputAction> AreaAttackAction;
 	
 	void AreaAttack();
-	
 	void Dash();
-	
 	void Move(const FInputActionValue& InputActionValue);
-	
 	void CursorTrace();
-	
 	void Attack();
+    
+	// Función para el estilo Hotline Miami
+	void RotatePawnToCursor();
 	
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;
-	
-	
-	
 };
