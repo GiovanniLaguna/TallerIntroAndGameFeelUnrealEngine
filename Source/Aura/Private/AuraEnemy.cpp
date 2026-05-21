@@ -81,3 +81,66 @@ void AAuraEnemy::FireMeleeAttack()
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}
 }
+
+#include "Camera/CameraComponent.h"
+#include "FCTween.h"
+
+void AAuraEnemy::Die()
+{
+	Super::Die();
+
+	// Ejecutar Screen Shake mediante código usando Fresh Baked Tweens (FCTween)
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (APawn* PlayerPawn = PC->GetPawn())
+		{
+			if (UCameraComponent* CameraComp = PlayerPawn->FindComponentByClass<UCameraComponent>())
+			{
+				FVector OriginalLoc = CameraComp->GetRelativeLocation();
+				
+				// Hacemos un tween de 0 a 1 durante 0.35 segundos
+				FCTweenInstanceFloat* Tween = FCTween::Play(0.0f, 1.0f, [CameraComp, OriginalLoc](float t)
+				{
+					if (IsValid(CameraComp))
+					{
+						// (1.0 - t) asegura que el temblor pierda fuerza con el tiempo
+						float Intensity = (1.0f - t) * 30.0f;
+						FVector RandomOffset = FVector(
+							FMath::RandRange(-Intensity, Intensity),
+							FMath::RandRange(-Intensity, Intensity),
+							FMath::RandRange(-Intensity, Intensity)
+						);
+						CameraComp->SetRelativeLocation(OriginalLoc + RandomOffset);
+					}
+				}, 0.35f, EFCEase::OutQuad);
+
+				// Cuando el tween termine, regresamos la cámara a su posición original intacta
+				Tween->SetOnComplete([CameraComp, OriginalLoc]()
+				{
+					if (IsValid(CameraComp))
+					{
+						CameraComp->SetRelativeLocation(OriginalLoc);
+					}
+				});
+			}
+		}
+	}
+
+	PlayDeathShake(); // Aún mantenemos el evento de Blueprint por si acaso quieres agregar más cosas
+
+	// Configurar desvanecimiento visual del enemigo antes de destruirse
+	SetLifeSpan(3.0f); // Aseguramos que el actor vivirá exactamente 3 segundos más (Server y Cliente)
+
+	if (DynamicMaterial)
+	{
+		UMaterialInstanceDynamic* Mat = DynamicMaterial;
+		// Hacemos el tween del parámetro Alpha de 1.0 a 0.0 durante 2.9 segundos
+		FCTween::Play(1.0f, 0.0f, [Mat](float AlphaValue)
+		{
+			if (IsValid(Mat))
+			{
+				Mat->SetScalarParameterValue(FName("DeathAlpha"), AlphaValue);
+			}
+		}, 2.9f, EFCEase::Linear);
+	}
+}

@@ -6,6 +6,8 @@
 #include "AuraCharacterBase.h"
 #include "AuroPlayer.generated.h"
 
+class AAuraWeapon;
+
 /**
  * 
  */
@@ -22,6 +24,13 @@ public:
 	// Evento que llamará al Widget de Game Over desde el Blueprint
 	UFUNCTION(BlueprintImplementableEvent, Category = "Aura|UI")
 	void ShowGameOverScreen();
+
+	// Weapon interaction
+	void Interact();
+	void ThrowEquippedWeapon();
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<AAuraWeapon> EquippedWeapon;
 private: 
 	void InitAbilityActorInfo();
 	

@@ -20,6 +20,12 @@ AAuraEnemy();
 /** Enemy Interface*/
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+	
+	virtual void Die() override;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Effects")
+	void PlayDeathShake();
+
 	// Función que llamará la Inteligencia Artificial
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void FireRangedAttack();
@@ -35,7 +41,5 @@ protected:
 	// Arreglo para darle habilidades iniciales al enemigo desde el Blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
-
-	
 	
 };

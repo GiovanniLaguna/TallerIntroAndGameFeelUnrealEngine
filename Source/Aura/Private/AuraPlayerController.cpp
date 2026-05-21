@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Interaction/EnemyInterface.h"
+#include "AuroPlayer.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -53,6 +54,19 @@ void AAuraPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::Attack);
 	EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AAuraPlayerController::Dash);
 	EnhancedInputComponent->BindAction(AreaAttackAction, ETriggerEvent::Started, this, &AAuraPlayerController::AreaAttack);
+	
+	if (InteractAction)
+	{
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AAuraPlayerController::Interact);
+	}
+}
+
+void AAuraPlayerController::Interact()
+{
+	if (AAuroPlayer* AuraPlayer = Cast<AAuroPlayer>(GetPawn()))
+	{
+		AuraPlayer->Interact();
+	}
 }
 
 void AAuraPlayerController::RotatePawnToCursor()

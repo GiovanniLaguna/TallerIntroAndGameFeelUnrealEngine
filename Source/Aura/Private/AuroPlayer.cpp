@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/HUD/AuraHUD.h"
+#include "Actor/AuraWeapon.h"
 
 AAuroPlayer::AAuroPlayer()
 {
@@ -108,4 +109,58 @@ void AAuroPlayer::Die()
 	// OJO: Cancelamos la autodestrucción del cadáver. 
 	// A los enemigos les pusimos SetLifeSpan(5.f) en la clase base, pero el cuerpo del jugador debe quedarse en el piso.
 	SetLifeSpan(0.f); 
+}
+
+void AAuroPlayer::Interact()
+{
+	// If we already have a weapon, we can't pick up another one right now (or maybe we drop/throw it first).
+	// In this design, Right Click does both: Pick Up if empty, Throw if equipped.
+	if (EquippedWeapon)
+	{
+		ThrowEquippedWeapon();
+		return;
+	}
+
+	// Try to find a weapon on the floor to pick up
+	FVector Start = GetActorLocation();
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(150.f);
+	
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	
+	if (GetWorld()->OverlapMultiByObjectType(OverlapResults, Start, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldDynamic), Sphere, QueryParams))
+	{
+		for (const FOverlapResult& Result : OverlapResults)
+		{
+			if (AAuraWeapon* FoundWeapon = Cast<AAuraWeapon>(Result.GetActor()))
+			{
+				FoundWeapon->PickUp(this);
+				EquippedWeapon = FoundWeapon;
+				break; // Pick up the first one we find
+			}
+		}
+	}
+}
+
+void AAuroPlayer::ThrowEquippedWeapon()
+{
+	if (!EquippedWeapon) return;
+
+	// Calculate direction towards the mouse cursor
+	FVector ThrowDirection = GetActorForwardVector();
+	
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		FHitResult Hit;
+		if (PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		{
+			ThrowDirection = (Hit.ImpactPoint - GetActorLocation());
+			ThrowDirection.Z = 0.f; // Keep it horizontal
+			ThrowDirection.Normalize();
+		}
+	}
+
+	EquippedWeapon->ThrowWeapon(ThrowDirection);
+	EquippedWeapon = nullptr;
 }

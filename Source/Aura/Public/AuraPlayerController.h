@@ -39,7 +39,11 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> AreaAttackAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> InteractAction;
 	
+	void Interact();
 	void AreaAttack();
 	void Dash();
 	void Move(const FInputActionValue& InputActionValue);
